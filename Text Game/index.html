@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        #inputText, #userInput {
+            width: 100%;
+            height: 100px;
+            font-size: 18px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #333;
+        }
+        #keyboard {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .key-row {
+            display: flex;
+            justify-content: center;
+        }
+        .key {
+            width: 40px;
+            height: 40px;
+            margin: 5px;
+            text-align: center;
+            line-height: 40px;
+            border: 1px solid #333;
+            background-color: #ddd;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .key:active {
+            background-color: #bbb;
+        }
+        .space-key {
+            width: 200px;
+        }
+        #timer, #score {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Typing Game</h2>
+        <textarea id="inputText" placeholder="Enter a paragraph for the game..."></textarea>
+        <button onclick="startGame()">Start Game</button>
+
+        <div id="gameArea" style="display:none;">
+            <p><strong>Type the paragraph below:</strong></p>
+            <p id="displayText"></p>
+            <textarea id="userInput" placeholder="Start typing..." oninput="checkTyping()"></textarea>
+            <div id="timer">Time Left: 5:00</div>
+            <div id="score">Score: 0</div>
+            <div id="keyboard"></div>
+        </div>
+    </div>
+
+    <script>
+        let originalText = "";
+        let timer;
+        let timeLeft = 300; // 5 minutes in seconds
+        let score = 0;
+
+        function startGame() {
+            originalText = document.getElementById("inputText").value.trim();
+            if (!originalText) {
+                alert("Please enter a paragraph first!");
+                return;
+            }
+
+            document.getElementById("displayText").innerText = originalText;
+            document.getElementById("gameArea").style.display = "block";
+            document.getElementById("userInput").value = "";
+            document.getElementById("score").innerText = "Score: 0";
+            document.getElementById("inputText").style.display = "none";
+
+            timeLeft = 300;
+            score = 0;
+            startTimer();
+            generateKeyboard();
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timer = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert("Time's up! Your final score is: " + score);
+                    document.getElementById("gameArea").style.display = "none";
+                    document.getElementById("inputText").style.display = "block";
+                    return;
+                }
+                timeLeft--;
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                document.getElementById("timer").innerText = `Time Left: ${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+            }, 1000);
+        }
+
+        function checkTyping() {
+            let userWords = document.getElementById("userInput").value.trim().split(/\s+/);
+            let originalWords = originalText.split(/\s+/);
+            let matchedWords = 0;
+
+            for (let i = 0; i < userWords.length; i++) {
+                if (userWords[i] === originalWords[i]) {
+                    matchedWords++;
+                }
+            }
+            score = matchedWords;
+            document.getElementById("score").innerText = "Score: " + score;
+        }
+
+        function generateKeyboard() {
+            const qwertyLayout = [
+                "QWERTYUIOP",
+                "ASDFGHJKL",
+                "ZXCVBNM"
+            ];
+            const keyboardDiv = document.getElementById("keyboard");
+            keyboardDiv.innerHTML = "";
+
+            qwertyLayout.forEach(row => {
+                let rowDiv = document.createElement("div");
+                rowDiv.classList.add("key-row");
+                row.split("").forEach(letter => {
+                    let key = document.createElement("div");
+                    key.classList.add("key");
+                    key.innerText = letter;
+                    key.onclick = () => addCharacter(letter.toLowerCase());
+                    rowDiv.appendChild(key);
+                });
+                keyboardDiv.appendChild(rowDiv);
+            });
+
+            let specialRow = document.createElement("div");
+            specialRow.classList.add("key-row");
+
+            let spaceKey = document.createElement("div");
+            spaceKey.classList.add("key", "space-key");
+            spaceKey.innerText = "SPACE";
+            spaceKey.onclick = () => addCharacter(" ");
+            specialRow.appendChild(spaceKey);
+
+            let commaKey = document.createElement("div");
+            commaKey.classList.add("key");
+            commaKey.innerText = ",";
+            commaKey.onclick = () => addCharacter(",");
+            specialRow.appendChild(commaKey);
+
+            let periodKey = document.createElement("div");
+            periodKey.classList.add("key");
+            periodKey.innerText = ".";
+            periodKey.onclick = () => addCharacter(".");
+            specialRow.appendChild(periodKey);
+
+            keyboardDiv.appendChild(specialRow);
+        }
+
+        function addCharacter(char) {
+            document.getElementById("userInput").value += char;
+            checkTyping();
+        }
+    </script>
+</body>
+</html>
